@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华韵 · 时光列车</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* ====== 重置与基础 ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+        
+        /* ====== 主容器 ====== */
+        .main-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* ====== 场景系统 ====== */
+        .scene-container {
+            width: 500vw; /* 5个场景 * 100vw */
+            height: 100vh;
+            display: flex;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .scene {
+            width: 100vw;
+            height: 100vh;
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 5rem;
+        }
+        
+        /* ====== 场景背景颜色 ====== */
+        .scene-1 {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+        
+        .scene-2 {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+        
+        .scene-3 {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        }
+        
+        .scene-4 {
+            background: linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%);
+        }
+        
+        .scene-5 {
+            background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%);
+        }
+        
+        /* ====== 导航指示器 ====== */
+        .scene-indicator {
+            position: fixed;
+            top: 50%;
+            right: 2rem;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .indicator-dot.active {
+            background: #ff6b6b;
+            transform: scale(1.3);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
+        }
+        
+        .indicator-dot:hover::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        /* ====== 导航箭头 ====== */
+        .nav-arrows {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2rem;
+            z-index: 1000;
+        }
+        
+        .nav-arrow {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-arrow:hover {
+            background: white;
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* ====== 背景音乐控制 ====== */
+        .music-control {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+            z-index: 1000;
+        }
+        
+        .music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .music-control.playing {
+            background: linear-gradient(135deg, #42e695, #3bb2b8);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 5px 15px rgba(66, 230, 149, 0.3); }
+            50% { box-shadow: 0 5px 25px rgba(66, 230, 149, 0.6); }
+            100% { box-shadow: 0 5px 15px rgba(66, 230, 149, 0.3); }
+        }
+        
+        /* ====== 场景1：开场动画 ====== */
+        .scene-1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .opening-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .train-track {
+            position: absolute;
+            top: 45%;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                #ff6b6b 10%, 
+                #ffd93d 30%, 
+                #4facfe 50%, 
+                #42e695 70%, 
+                #ff6b6b 90%, 
+                transparent
+            );
+            border-radius: 3px;
+        }
+        
+        .opening-train {
+            position: absolute;
+            left: -400px;
+            top: 40%;
+            width: 350px;
+            height: 100px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            border-radius: 20px 60px 60px 20px;
+            display: flex;
+            align-items: center;
+            padding-left: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            animation: train-entrance 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+        }
+        
+        @keyframes train-entrance {
+            0% { left: -400px; opacity: 0; transform: scale(0.9); }
+            15% { opacity: 1; transform: scale(1); }
+            70% { left: 50%; transform: translateX(-50%); }
+            85% { left: 50%; transform: translateX(-50%); }
+            100% { left: 120%; opacity: 0; transform: translateX(-50%) scale(1.1); }
+        }
+        
+        .train-window {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ffffff, #f0f8ff);
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 3px solid #ffd93d;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 年份数字动画 */
+        .year-counter {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            z-index: 5;
+            opacity: 0;
+            animation: show-year-counter 0.5s 1.5s forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes show-year-counter {
+            to { opacity: 1; }
+        }
+        
+        .year-digit {
+            width: 110px;
+            height: 150px;
+            background: linear-gradient(135deg, rgba(45, 55, 72, 0.95), rgba(74, 85, 104, 0.95));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5.5rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: 
+                0 15px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+            font-family: 'ZCOOL XiaoWei', serif;
+        }
+        
+        .year-digit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                transparent 40%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 60%);
+            animation: digit-shine 2s linear infinite;
+        }
+        
+        @keyframes digit-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* 关键修复：数字消失后不阻挡内容 */
+        .year-counter.hidden {
+            opacity: 0 !important;
+            z-index: -1 !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* 场景2：封面主题 */
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        .hero-content.show-content {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 1s ease;
+            pointer-events: all;
+        }
+        
+        .main-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 5rem;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            font-family: 'ZCOOL XiaoWei', serif;
+            font-size: 2rem;
+            color: #4a5568;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+        }
+        
+        .intro-text {
+            font-size: 1.3rem;
+            color: #666;
+            line-height: 1.9;
+            margin-bottom: 3.5rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 1.5rem 4rem;
+            font-size: 1.3rem;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+            letter-spacing: 1px;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 25px 60px rgba(255, 107, 107, 0.5);
+        }
+        
+        /* ====== 图片放大模态框 ====== */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: -10px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-title {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            width: 100%;
+        }
+        
+        /* ====== 视频播放器 ====== */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .video-content {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .video-player {
+            width: 100%;
+            height: 450px;
+            border-radius: 10px;
+            background: #000;
+        }
+        
+        .close-video {
+            position: absolute;
+            top: -40px;
+            right: -10px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-title {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+            width: 100%;
+        }
+        
+        /* ====== 华乐小精灵 ====== */
+        .music-spirit {
+            position: fixed;
+            bottom: 100px;
+            right: 100px;
+            width: 180px;
+            height: 220px;
+            z-index: 1500;
+            display: none;
+            pointer-events: none;
+        }
+        
+        .spirit-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            animation: float-spirit 3s ease-in-out infinite;
+        }
+        
+        @keyframes float-spirit {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .spirit-body {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 160px;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 
+                0 10px 25px rgba(255, 107, 107, 0.3),
+                inset 0 -10px 20px rgba(255, 255, 255, 0.3);
+            border: 5px solid rgba(255, 255, 255, 0.8);
+            z-index: 2;
+        }
+        
+        .spirit-face {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 50px;
+            z-index: 3;
+        }
+        
+        .spirit-eyes {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .spirit-eye {
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation: blink 4s infinite;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes blink {
+            0%, 45%, 55%, 100% { height: 22px; }
+            50% { height: 3px; }
+        }
+        
+        .spirit-pupil {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 12px;
+            height: 12px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation: look-around 8s infinite;
+        }
+        
+        @keyframes look-around {
+            0%, 40% { transform: translate(0, 0); }
+            45% { transform: translate(3px, -3px); }
+            50% { transform: translate(5px, 0); }
+            55% { transform: translate(3px, 3px); }
+            60% { transform: translate(0, 0); }
+        }
+        
+        .spirit-mouth {
+            width: 30px;
+            height: 15px;
+            background: #ff8e53;
+            border-radius: 0 0 20px 20px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            animation: smile 5s infinite;
+        }
+        
+        @keyframes smile {
+            0%, 70%, 100% { height: 15px; }
+            75% { height: 20px; }
+            80% { height: 15px; }
+        }
+        
+        .spirit-cheeks {
+            position: absolute;
+            top: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .spirit-cheek {
+            width: 15px;
+            height: 8px;
+            background: rgba(255, 155, 158, 0.3);
+            border-radius: 50%;
+        }
+        
+        .spirit-notes {
+            position: absolute;
+            top: 10px;
+            right: -15px;
+            font-size: 2.5rem;
+            color: #ffd93d;
+            animation: float-note 2s infinite;
+            z-index: 4;
+        }
+        
+        @keyframes float-note {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateY(-20px) rotate(15deg) scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        .spirit-wings {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 80px;
+            z-index: 1;
+        }
+        
+        .spirit-wing {
+            position: absolute;
+            width: 70px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(255, 214, 221, 0.7), rgba(255, 180, 180, 0.5));
+            border-radius: 50%;
+            animation: flap 1.5s infinite alternate;
+        }
+        
+        .spirit-wing.left {
+            left: 0;
+            animation-delay: 0s;
+        }
+        
+        .spirit-wing.right {
+            right: 0;
+            animation-delay: 0.2s;
+        }
+        
+        @keyframes flap {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1) translateY(-5px); }
+        }
+        
+        .spirit-message {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1.2rem 1.8rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            min-width: 240px;
+            max-width: 320px;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2d3748;
+            border: 3px solid #ff6b6b;
+            display: none;
+            animation: message-pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            pointer-events: auto;
+            z-index: 10;
+            font-family: 'ZCOOL XiaoWei', serif;
+        }
+        
+        @keyframes message-pop {
+            from { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(30px) scale(0.8); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(-50%) translateY(0) scale(1); 
+            }
+        }
+        
+        .spirit-message::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #ff6b6b;
+        }
+        
+        .spirit-message::before {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid white;
+            z-index: -1;
+        }
+        
+        /* ====== 场景2：纪念车票 ====== */
+        .scene-content {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .scene-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .scene-subtitle {
+            text-align: center;
+            color: #4a5568;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .ticket-area {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .ticket-area {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 优化车票设计 - 添加背景颜色 */
+        .memory-ticket {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+            border-radius: 25px;
+            padding: 4rem;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.15),
+                inset 0 0 100px rgba(176, 224, 230, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255, 107, 107, 0.2);
+        }
+        
+        .ticket-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(79, 172, 254, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(66, 230, 149, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .ticket-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px double rgba(255, 107, 107, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .ticket-main-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ff6b6b, #4facfe, #42e695);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        
+        .ticket-subtitle {
+            font-size: 1.3rem;
+            color: #718096;
+            letter-spacing: 1px;
+        }
+        
+        .seal-preview-area {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 120px;
+            height: 120px;
+            z-index: 2;
+        }
+        
+        .seal-preview {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            box-shadow: 
+                0 10px 30px rgba(255, 107, 107, 0.3),
+                inset 0 -5px 15px rgba(0, 0, 0, 0.2);
+            border: 5px solid rgba(255, 255, 255, 0.8);
+            animation: seal-float 3s ease-in-out infinite;
+        }
+        
+        @keyframes seal-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .ticket-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .ticket-left {
+            padding: 1rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .info-item {
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 248, 255, 0.8));
+            border-radius: 15px;
+            border-left: 5px solid #ff6b6b;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-value {
+            font-size: 1.4rem;
+            color: #2d3748;
+            font-weight: 700;
+        }
+        
+        .ticket-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        
+        .photo-container {
+            width: 280px;
+            height: 340px;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.15),
+                inset 0 0 30px rgba(255, 255, 255, 0.5);
+            position: relative;
+            border: 8px solid white;
+        }
+        
+        .photo-placeholder {
+            width: 90%;
+            height: 90%;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            font-size: 1.1rem;
+        }
+        
+        .member-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1.8rem 1rem;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(253, 160, 133, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(253, 160, 133, 0.4);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .ticket-footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 2px dashed rgba(255, 107, 107, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .ticket-quote {
+            font-size: 1.2rem;
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            font-style: italic;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* 印章选择区 */
+        .seal-selection {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.9));
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .seal-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .seal-option {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            margin: 0 auto;
+        }
+        
+        .seal-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .seal-option.selected {
+            transform: scale(1.15);
+            box-shadow: 
+                0 0 30px rgba(255, 107, 107, 0.5),
+                inset 0 0 20px rgba(255, 255, 255, 0.3);
+            border: 4px solid #ff6b6b;
+        }
+        
+        .seal-1 { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .seal-2 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .seal-3 { background: linear-gradient(135deg, #42e695, #3bb2b8); }
+        .seal-4 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        
+        .btn-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #4a5568;
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* ====== 场景3：回忆相册 ====== */
+        .memories-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 1400px;
+            padding: 1rem;
+        }
+        
+        .memory-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .memory-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .memory-image {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3.5rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .memory-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .memory-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        .memory-content {
+            padding: 2.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .memory-year {
+            font-size: 1.1rem;
+            color: #ff6b6b;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+        
+        .memory-title {
+            font-size: 1.6rem;
+            color: #2d3748;
+            margin-bottom: 1.2rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .memory-desc {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        
+        /* ====== 场景4：音乐珍藏 ====== */
+        .music-collection {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 1400px;
+            padding: 1rem;
+        }
+        
+        .music-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .music-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .music-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .music-title {
+            font-size: 1.6rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .music-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #718096;
+            font-weight: 500;
+        }
+        
+        .music-desc {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+        
+        .play-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            align-self: flex-start;
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        /* ====== 场景5：时光印记 ====== */
+        .final-ticket-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            position: relative;
+        }
+        
+        .final-ticket {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+            border-radius: 25px;
+            padding: 5rem;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.2),
+                inset 0 0 100px rgba(176, 224, 230, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            border: 3px solid rgba(255, 107, 107, 0.2);
+        }
+        
+        @media (max-width: 1024px) {
+            .final-ticket {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+        }
+        
+        .final-ticket-photo {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.2),
+                inset 0 0 40px rgba(255, 255, 255, 0.5);
+            position: relative;
+            border: 10px solid white;
+        }
+        
+        .final-photo-placeholder {
+            width: 90%;
+            height: 90%;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #718096;
+            font-size: 1.2rem;
+        }
+        
+        /* 小型印章放在右上角边缘 */
+        .final-seal-container {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            z-index: 10;
+        }
+        
+        .final-seal {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #e53935, #c62828);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 
+                0 15px 40px rgba(229, 57, 53, 0.4),
+                inset 0 -5px 15px rgba(0, 0, 0, 0.2);
+            border: 5px solid rgba(255, 255, 255, 0.9);
+            opacity: 0;
+            transform: scale(0) rotate(-180deg);
+            animation: small-seal-stamp 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
+        }
+        
+        @keyframes small-seal-stamp {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(-180deg) translate(30px, -30px);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1.2) rotate(-10deg);
+            }
+            40% {
+                transform: scale(0.9) rotate(5deg);
+            }
+            60% {
+                transform: scale(1.05) rotate(-2deg);
+            }
+            80% {
+                transform: scale(0.95) rotate(1deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        .final-ticket-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .final-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ff6b6b, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+        
+        .final-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .final-info-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1.8rem;
+            border-radius: 15px;
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .final-info-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .final-info-value {
+            font-size: 1.4rem;
+            color: #2d3748;
+            font-weight: 700;
+        }
+        
+        .final-message {
+            font-size: 1.3rem;
+            color: #4a5568;
+            line-height: 1.8;
+            margin: 3rem 0;
+            font-style: italic;
+            max-width: 600px;
+        }
+        
+        /* ====== 响应式设计 ====== */
+        @media (max-width: 1024px) {
+            .ticket-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .seal-options {
+                grid-template-columns: repeat(4, 1fr);
+                justify-items: center;
+            }
+            
+            .final-seal-container {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 2rem auto;
+            }
+            
+            .music-spirit {
+                bottom: 80px;
+                right: 20px;
+                transform: scale(0.8);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 3rem;
+            }
+            
+            .scene-title {
+                font-size: 2.5rem;
+            }
+            
+            .scene {
+                padding: 1rem;
+                padding-top: 4rem;
+            }
+            
+            .memory-ticket {
+                padding: 2rem;
+            }
+            
+            .ticket-main-title {
+                font-size: 2.5rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .member-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .memories-gallery,
+            .music-collection {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .nav-arrows {
+                bottom: 1rem;
+            }
+            
+            .scene-indicator {
+                right: 1rem;
+            }
+            
+            .music-control {
+                top: 1rem;
+                left: 1rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+            
+            .seal-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .year-digit {
+                width: 70px;
+                height: 100px;
+                font-size: 4rem;
+            }
+            
+            .opening-train {
+                width: 280px;
+                height: 80px;
+            }
+            
+            .music-spirit {
+                bottom: 60px;
+                right: 10px;
+                transform: scale(0.7);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .memories-gallery,
+            .music-collection {
+                grid-template-columns: 1fr;
+            }
+            
+            .seal-preview-area {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 1rem auto;
+            }
+            
+            .final-ticket {
+                padding: 2rem;
+            }
+            
+            .year-digit {
+                width: 50px;
+                height: 80px;
+                font-size: 3rem;
+            }
+            
+            .music-spirit {
+                bottom: 50px;
+                right: 5px;
+                transform: scale(0.6);
+            }
+        }
+        
+        /* 确保内容可以滚动到顶部 */
+        .scrollable-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景音乐控制 -->
+    <button class="music-control" id="musicControl">
+        <i class="fas fa-music"></i>
+    </button>
+    
+    <!-- 图片放大模态框 -->
+    <div class="image-modal" id="imageModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeImageModal()">&times;</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div class="modal-title" id="modalTitle"></div>
+        </div>
+    </div>
+    
+    <!-- 视频播放模态框 -->
+    <div class="video-modal" id="videoModal">
+        <div class="video-content">
+            <button class="close-video" onclick="closeVideoModal()">&times;</button>
+            <iframe class="video-player" id="videoPlayer" src="" frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen></iframe>
+            <div class="video-title" id="videoTitle"></div>
+        </div>
+    </div>
+    
+    <!-- 华乐小精灵 -->
+    <div class="music-spirit" id="musicSpirit">
+        <div class="spirit-container">
+            <div class="spirit-wings">
+                <div class="spirit-wing left"></div>
+                <div class="spirit-wing right"></div>
+            </div>
+            <div class="spirit-body">
+                <div class="spirit-face">
+                    <div class="spirit-eyes">
+                        <div class="spirit-eye">
+                            <div class="spirit-pupil"></div>
+                        </div>
+                        <div class="spirit-eye">
+                            <div class="spirit-pupil"></div>
+                        </div>
+                    </div>
+                    <div class="spirit-cheeks">
+                        <div class="spirit-cheek"></div>
+                        <div class="spirit-cheek"></div>
+                    </div>
+                    <div class="spirit-mouth"></div>
+                </div>
+            </div>
+            <div class="spirit-notes">♪</div>
+            <div class="spirit-message" id="spiritMessage"></div>
+        </div>
+    </div>
+    
+    <!-- 主容器 -->
+    <div class="main-container" id="mainContainer">
+        <!-- 场景容器 -->
+        <div class="scene-container" id="sceneContainer">
+            <!-- 场景1：开场动画 -->
+            <div class="scene scene-1">
+                <div class="opening-container">
+                    <div class="train-track"></div>
+                    <div class="opening-train">
+                        <div class="train-window"></div>
+                        <div class="train-window"></div>
+                        <div class="train-window"></div>
+                        <div class="train-window"></div>
+                    </div>
+                    
+                    <div class="year-counter" id="yearCounter">
+                        <div class="year-digit">2</div>
+                        <div class="year-digit">0</div>
+                        <div class="year-digit">2</div>
+                        <div class="year-digit">5</div>
+                    </div>
+                </div>
+                
+                <!-- 主题内容 -->
+                <div class="hero-content" id="heroContent">
+                    <h1 class="main-title">华韵流转</h1>
+                    <h2 class="subtitle">—— 时光列车 ——</h2>
+                    <p class="intro-text">
+                        登上这趟开往记忆深处的列车，<br>
+                        重温在华乐团度过的每一个音符，<br>
+                        每一段旋律，每一次感动……
+                    </p>
+                    <button class="start-btn" onclick="goToScene(2)">
+                        <span>开启旅程</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 场景2：纪念车票 -->
+            <div class="scene scene-2">
+                <div class="scrollable-content">
+                    <div class="scene-content">
+                        <div class="scene-header">
+                            <h2 class="scene-title">纪念车票</h2>
+                            <p class="scene-subtitle">珍藏这段音乐旅程</p>
+                        </div>
+                        
+                        <div class="ticket-area">
+                            <!-- 左侧：纪念车票 -->
+                            <div class="memory-ticket" id="memoryTicket">
+                                <div class="ticket-bg"></div>
+                                
+                                <div class="ticket-header">
+                                    <h3 class="ticket-main-title">华乐团时光纪念票</h3>
+                                    <p class="ticket-subtitle">2025年第001号 · 永不过期</p>
+                                    
+                                    <!-- 印章预览区域 -->
+                                    <div class="seal-preview-area">
+                                        <div class="seal-preview" id="sealPreview">
+                                            <i class="fas fa-heart"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="ticket-content">
+                                    <div class="ticket-left">
+                                        <div class="info-grid">
+                                            <div class="info-item">
+                                                <div class="info-label">持票人</div>
+                                                <div class="info-value">华乐团成员</div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-label">声部</div>
+                                                <div class="info-value">弦乐部</div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-label">旅程起点</div>
+                                                <div class="info-value">2020年9月</div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-label">旅程时长</div>
+                                                <div class="info-value">5年时光</div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-label">演奏曲目</div>
+                                                <div class="info-value">32首作品</div>
+                                            </div>
+                                            <div class="info-item">
+                                                <div class="info-label">同行伙伴</div>
+                                                <div class="info-value">48位挚友</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ticket-right">
+                                        <div class="photo-container">
+                                            <div class="photo-placeholder">
+                                                <i class="fas fa-user-circle" style="font-size: 4rem; margin-bottom: 1rem; color: #4a5568;"></i>
+                                                <span>华乐团成员</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="member-stats">
+                                            <div class="stat-item">
+                                                <div class="stat-number">18</div>
+                                                <div>场演出</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-number">380+</div>
+                                                <div>次排练</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-number">7</div>
+                                                <div>项荣誉</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="ticket-footer">
+                                    <p class="ticket-quote">
+                                        "这张车票记录着我们在华乐团度过的每一个音符、每一次欢笑、每一份感动。<br>
+                                        音乐让时光有了温度，让记忆永不褪色。"
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- 右侧：印章选择区 -->
+                            <div class="seal-selection">
+                                <h3 style="color: #2d3748; text-align: center; margin-bottom: 1rem;">选择时光印章</h3>
+                                <p style="color: #718096; text-align: center; margin-bottom: 2rem;">
+                                    为您的纪念车票盖上专属印章
+                                </p>
+                                
+                                <div class="seal-options">
+                                    <div class="seal-option seal-1 selected" data-icon="fas fa-heart" onclick="selectSeal(1, 'fas fa-heart')">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div class="seal-option seal-2" data-icon="fas fa-music" onclick="selectSeal(2, 'fas fa-music')">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div class="seal-option seal-3" data-icon="fas fa-star" onclick="selectSeal(3, 'fas fa-star')">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="seal-option seal-4" data-icon="fas fa-award" onclick="selectSeal(4, 'fas fa-award')">
+                                        <i class="fas fa-award"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="downloadTicketWithSeal()">
+                                        <i class="fas fa-download"></i>
+                                        下载纪念票
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="goToScene(3)">
+                                        继续旅程
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 场景3：回忆相册 -->
+            <div class="scene scene-3">
+                <div class="scrollable-content">
+                    <div class="scene-content">
+                        <div class="scene-header">
+                            <h2 class="scene-title">回忆相册</h2>
+                            <p class="scene-subtitle">珍藏每一帧美好（点击图片放大）</p>
+                        </div>
+                        
+                        <div class="memories-gallery" id="memoriesGallery">
+                            <!-- 回忆卡片将在这里动态生成 -->
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 3rem;">
+                            <button class="btn btn-primary" onclick="goToScene(4)">
+                                聆听音乐记忆
+                                <i class="fas fa-music"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 场景4：音乐珍藏 -->
+            <div class="scene scene-4">
+                <div class="scrollable-content">
+                    <div class="scene-content">
+                        <div class="scene-header">
+                            <h2 class="scene-title">音乐珍藏</h2>
+                            <p class="scene-subtitle">那些触动心弦的旋律（点击播放视频，点击卡片听小精灵说曲目）</p>
+                        </div>
+                        
+                        <div class="music-collection" id="musicCollection">
+                            <!-- 音乐卡片将在这里动态生成 -->
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 3rem;">
+                            <button class="btn btn-primary" onclick="goToScene(5)">
+                                前往时光印记
+                                <i class="fas fa-stamp"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 场景5：时光印记 -->
+            <div class="scene scene-5">
+                <div class="scrollable-content">
+                    <div class="scene-content">
+                        <div class="scene-header">
+                            <h2 class="scene-title">时光印记</h2>
+                            <p class="scene-subtitle">旅程的终点，记忆的起点</p>
+                        </div>
+                        
+                        <div class="final-ticket-container">
+                            <div class="final-ticket" id="finalTicketForDownload">
+                                <!-- 左侧：照片区域 -->
+                                <div class="final-ticket-photo">
+                                    <div class="final-photo-placeholder">
+                                        <i class="fas fa-user-circle" style="font-size: 5rem; margin-bottom: 1.5rem; color: #4a5568;"></i>
+                                        <span style="font-size: 1.3rem; font-weight: 600;">华乐团成员</span>
+                                        <span style="margin-top: 0.5rem;">弦乐部 · 2020-2025</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 右侧：车票信息 -->
+                                <div class="final-ticket-content">
+                                    <h3 class="final-title">华乐团时光纪念票</h3>
+                                    
+                                    <div class="final-info-grid">
+                                        <div class="final-info-item">
+                                            <div class="final-info-label">旅程时长</div>
+                                            <div class="final-info-value">5年时光</div>
+                                        </div>
+                                        <div class="final-info-item">
+                                            <div class="final-info-label">演奏曲目</div>
+                                            <div class="final-info-value">32首作品</div>
+                                        </div>
+                                        <div class="final-info-item">
+                                            <div class="final-info-label">演出场次</div>
+                                            <div class="final-info-value">18场</div>
+                                        </div>
+                                        <div class="final-info-item">
+                                            <div class="final-info-label">获得荣誉</div>
+                                            <div class="final-info-value">7项</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="final-message">
+                                        列车到站，但音乐永不停歇。<br>
+                                        在华乐团的日子，是青春最动人的乐章。<br>
+                                        "到站"印章为这段旅程画上句点，<br>
+                                        但记忆中的旋律将永远回响。
+                                    </p>
+                                    
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary" onclick="downloadFinalTicket()">
+                                            <i class="fas fa-download"></i>
+                                            下载纪念票（无印章）
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="goToScene(1)">
+                                            <i class="fas fa-redo"></i>
+                                            重新启程
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 小型印章放在右上角边缘 -->
+                                <div class="final-seal-container">
+                                    <div class="final-seal" id="finalSeal">
+                                        到站
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 导航指示器 -->
+        <div class="scene-indicator">
+            <div class="indicator-dot active" data-title="启程" onclick="goToScene(1)"></div>
+            <div class="indicator-dot" data-title="纪念车票" onclick="goToScene(2)"></div>
+            <div class="indicator-dot" data-title="回忆相册" onclick="goToScene(3)"></div>
+            <div class="indicator-dot" data-title="音乐珍藏" onclick="goToScene(4)"></div>
+            <div class="indicator-dot" data-title="时光印记" onclick="goToScene(5)"></div>
+        </div>
+        
+        <!-- 导航箭头 -->
+        <div class="nav-arrows">
+            <button class="nav-arrow" id="prevBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="nav-arrow" id="nextBtn">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ====== 全局变量 ======
+        let currentScene = 1;
+        const totalScenes = 5;
+        let isTransitioning = false;
+        let selectedSeal = 1;
+        let selectedSealIcon = 'fas fa-heart';
+        let currentSpiritMessage = null;
+        
+        // ====== 背景音乐控制 ======
+        let isMusicPlaying = false;
+        let audioPlayer = null;
+        
+        // ====== 数据初始化 ======
+        const memoriesData = [
+            { 
+                year: "2020", 
+                title: "初次相遇", 
+                desc: "在华乐团的第一次排练，面对陌生的乐器却充满期待", 
+                color: "#ff6b6b", 
+                icon: "fas fa-handshake",
+                image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2021", 
+                title: "首次登台", 
+                desc: "第一次参与校内演出，紧张得手心出汗但收获热烈掌声", 
+                color: "#4facfe", 
+                icon: "fas fa-music",
+                image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2022", 
+                title: "夏日集训", 
+                desc: "每天8小时的密集训练，汗水换来的是技术的突飞猛进", 
+                color: "#42e695", 
+                icon: "fas fa-sun",
+                image: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2023", 
+                title: "跨校交流", 
+                desc: "与三所高校联合演出，结识了志同道合的音乐伙伴", 
+                color: "#a18cd1", 
+                icon: "fas fa-users",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2023", 
+                title: "省级比赛", 
+                desc: "荣获二等奖，这是我们共同努力的最佳证明", 
+                color: "#ff8e53", 
+                icon: "fas fa-award",
+                image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2024", 
+                title: "担任声部长", 
+                desc: "从学习者成长为指导者，带领新人一同进步", 
+                color: "#ffd93d", 
+                icon: "fas fa-graduation-cap",
+                image: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2024", 
+                title: "专场音乐会", 
+                desc: "筹备三个月的完美演出，座无虚席的礼堂", 
+                color: "#36d1dc", 
+                icon: "fas fa-theater-masks",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2025", 
+                title: "告别演出", 
+                desc: "毕业前的最后一场音乐会，泪水与笑容交织", 
+                color: "#ff6b8b", 
+                icon: "fas fa-heart",
+                image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2025", 
+                title: "十周年庆典", 
+                desc: "华乐团十岁生日，新老团员齐聚一堂", 
+                color: "#5b86e5", 
+                icon: "fas fa-birthday-cake",
+                image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            },
+            { 
+                year: "2025", 
+                title: "最后一次排练", 
+                desc: "最后一次合奏《友谊地久天长》，记忆永远珍藏", 
+                color: "#36d1dc", 
+                icon: "fas fa-clock",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            }
+        ];
+        
+        const musicData = [
+            { 
+                title: "春江花月夜", 
+                year: "唐代古曲", 
+                type: "合奏", 
+                desc: "描绘江南春夜，江月交辉的美景，旋律优美流畅", 
+                color: "#ff6b6b", 
+                icon: "fas fa-moon",
+                video: "https://www.youtube.com/embed/8ATqA3D1evU",
+
+                dialogue: "《春江花月夜》是我最喜欢的曲子！它让我想起了江南水乡的静谧夜晚，月光洒在江面上，波光粼粼的，特别美～"
+            },
+            { 
+                title: "金蛇狂舞", 
+                year: "聂耳编曲", 
+                type: "合奏", 
+                desc: "热烈欢腾的乐曲，展现节日的喜庆气氛", 
+                color: "#ffd93d", 
+                icon: "fas fa-dragon",
+                video: "https://www.youtube.com/embed/H0q6lT0Sxq0",
+                dialogue: "《金蛇狂舞》的节奏真带感！每次演奏都让人热血沸腾呢！特别是春节演出的时候，大家一起奏响这首曲子，气氛特别热烈！"
+            },
+            { 
+                title: "高山流水", 
+                year: "古琴曲", 
+                type: "独奏/合奏", 
+                desc: "讲述伯牙子期的知音故事，意境深远", 
+                color: "#4facfe", 
+                icon: "fas fa-mountain",
+                video: "https://www.youtube.com/embed/1v_9_Rp_JX0",
+                dialogue: "《高山流水》讲述着知音的故事，伯牙子期的情谊真是令人感动～每次听到这首曲子，就会想起在华乐团遇到的好朋友们！"
+            },
+            { 
+                title: "二泉映月", 
+                year: "华彦钧", 
+                type: "二胡独奏", 
+                desc: "如泣如诉的二胡名曲，抒发对人生的感慨", 
+                color: "#a18cd1", 
+                icon: "fas fa-water",
+                video: "https://www.youtube.com/embed/IrcoiZH-s64",
+                dialogue: "《二泉映月》虽然忧伤，但充满了对美好生活的向往和追求。我们弦乐部练习这首曲子的时候，大家都特别投入呢！"
+            },
+            { 
+                title: "渔舟唱晚", 
+                year: "古筝曲", 
+                type: "古筝独奏", 
+                desc: "描绘夕阳西下，渔舟归航的宁静画面", 
+                color: "#ff8e53", 
+                icon: "fas fa-fish",
+                video: "https://www.youtube.com/embed/3Vq47us_VL0",
+                dialogue: "《渔舟唱晚》让我仿佛看到了夕阳下的渔舟，画面感太强了！特别是古筝部同学的演奏，那声音就像流水一样动听～"
+            },
+            { 
+                title: "赛马", 
+                year: "黄海怀", 
+                type: "二胡独奏", 
+                desc: "模仿骏马奔腾的生动场景，技巧高超", 
+                color: "#42e695", 
+                icon: "fas fa-horse",
+                video: "https://www.youtube.com/embed/dMq8ezY2LvY",
+                dialogue: "《赛马》展现了二胡的魅力，那种驰骋草原的感觉真自由！我们乐团里的二胡高手演奏这首曲子的时候，简直帅呆了！"
+            }
+        ];
+        
+        // ====== 开场动画 ======
+        function playOpeningAnimation() {
+            console.log("开始播放开场动画");
+            const digits = document.querySelectorAll('.year-digit');
+            const targetYear = "2025";
+            const yearCounter = document.getElementById('yearCounter');
+            
+            // 确保数字区域显示
+            yearCounter.style.opacity = "1";
+            yearCounter.style.display = 'grid';
+            yearCounter.classList.remove('hidden');
+            
+            // 每个数字独立滚动
+            digits.forEach((digit, index) => {
+                let count = 0;
+                const targetDigit = targetYear[index];
+                const interval = setInterval(() => {
+                    digit.textContent = Math.floor(Math.random() * 10);
+                    count++;
+                    
+                    if (count > 20 + index * 3) {
+                        clearInterval(interval);
+                        digit.textContent = targetDigit;
+                        
+                        // 添加数字跳动效果
+                        digit.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            digit.style.transform = 'scale(1)';
+                            digit.style.transition = 'transform 0.3s ease';
+                        }, 150);
+                        
+                        // 最后一个数字停止后，显示主题内容
+                        if (index === 3) {
+                            setTimeout(() => {
+                                // 数字淡出
+                                yearCounter.style.opacity = '0';
+                                yearCounter.style.transition = 'opacity 0.8s ease';
+                                
+                                // 等待淡出动画完成后，显示主题内容
+                                setTimeout(() => {
+                                    yearCounter.classList.add('hidden');
+                                    
+                                    // 显示主题内容
+                                    const heroContent = document.getElementById('heroContent');
+                                    heroContent.classList.add('show-content');
+                                    heroContent.style.opacity = '1';
+                                    heroContent.style.transform = 'translateY(0)';
+                                    
+                                    console.log("主题内容显示完成");
+                                }, 800);
+                            }, 500);
+                        }
+                    }
+                }, 60 + index * 10);
+            });
+        }
+        
+// ====== 背景音乐控制 - 最终修复版 ======
+function initBackgroundMusic() {
+    console.log("初始化背景音乐");
+    const musicControl = document.getElementById('musicControl');
+    
+    // 创建音频播放器
+    audioPlayer = new Audio();
+    audioPlayer.loop = true;
+    audioPlayer.volume = 0.5;
+    audioPlayer.preload = 'auto';
+    
+    // 尝试所有可能的音乐文件格式
+    const possibleFiles = [
+        'bgm.mp3',
+        'bgm.wav', 
+        'bgm.ogg',
+        'bgm.m4a',
+        'bgm.aac',
+        'BGM.mp3',  // 大写
+        'BGM.wav',
+        './bgm.mp3',
+        './bgm.wav',
+        './music/bgm.mp3',
+        './audio/bgm.mp3'
+    ];
+    
+    let currentFileIndex = 0;
+    let musicLoaded = false;
+    
+    // 尝试加载音乐文件
+    function tryLoadMusic() {
+        if (currentFileIndex >= possibleFiles.length) {
+            console.log('所有音乐文件都尝试失败');
+            showSpirit('找不到音乐文件，请确保bgm文件存在');
+            
+            // 使用在线音乐作为备用
+            useOnlineMusic();
+            return;
+        }
+        
+        const filePath = possibleFiles[currentFileIndex];
+        console.log('尝试加载音乐文件:', filePath);
+        
+        audioPlayer.src = filePath;
+        audioPlayer.load();
+        
+        // 监听加载事件
+        audioPlayer.oncanplay = function() {
+            console.log('音乐文件可以播放:', filePath);
+            musicLoaded = true;
+            showSpirit('音乐加载成功！');
+            
+            // 尝试自动播放
+            tryAutoPlay();
+        };
+        
+        audioPlayer.onerror = function() {
+            console.log('加载失败:', filePath);
+            currentFileIndex++;
+            setTimeout(tryLoadMusic, 100); // 尝试下一个文件
+        };
+        
+        // 设置超时检测
+        setTimeout(() => {
+            if (!musicLoaded && audioPlayer.readyState === 0) {
+                console.log('超时，尝试下一个文件');
+                currentFileIndex++;
+                tryLoadMusic();
+            }
+        }, 2000);
+    }
+    
+    // 尝试自动播放
+    function tryAutoPlay() {
+        if (!musicLoaded || isMusicPlaying) return;
+        
+        audioPlayer.play().then(() => {
+            isMusicPlaying = true;
+            musicControl.classList.add('playing');
+            musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+            console.log('音乐自动播放成功');
+        }).catch(error => {
+            console.log('自动播放失败，需要用户交互:', error);
+            showSpirit('点击左上角音乐按钮开始播放');
+        });
+    }
+    
+    // 使用在线音乐作为备用
+    function useOnlineMusic() {
+        console.log('使用在线备用音乐');
+        audioPlayer.src = 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_5c1ae9a607.mp3';
+        audioPlayer.load();
+        
+        audioPlayer.oncanplay = function() {
+            musicLoaded = true;
+            showSpirit('正在使用在线背景音乐');
+            tryAutoPlay();
+        };
+    }
+    
+    // 音乐控制按钮点击事件
+    musicControl.addEventListener('click', function() {
+        if (!musicLoaded) {
+            showSpirit('正在加载音乐...');
+            tryLoadMusic();
+            return;
+        }
+        
+        if (isMusicPlaying) {
+            audioPlayer.pause();
+            isMusicPlaying = false;
+            musicControl.classList.remove('playing');
+            musicControl.innerHTML = '<i class="fas fa-music"></i>';
+            console.log("音乐暂停");
+        } else {
+            audioPlayer.play().then(() => {
+                isMusicPlaying = true;
+                musicControl.classList.add('playing');
+                musicControl.innerHTML = '<i class="fas fa-pause"></i>';
+                console.log("音乐开始播放");
+                showSpirit('音乐播放中');
+            }).catch(error => {
+                console.log('播放失败:', error);
+                showSpirit('播放失败，请点击页面任意位置后再试');
+            });
+        }
+    });
+    
+    // 添加键盘快捷键
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            musicControl.click();
+        }
+    });
+    
+    // 页面点击事件 - 处理浏览器自动播放限制
+    document.addEventListener('click', function handleFirstClick() {
+        if (!musicLoaded) {
+            tryLoadMusic();
+        } else if (!isMusicPlaying) {
+            tryAutoPlay();
+        }
+        // 移除监听器，只执行一次
+        document.removeEventListener('click', handleFirstClick);
+    });
+    
+    // 开始尝试加载音乐
+    console.log('开始查找bgm音乐文件...');
+    tryLoadMusic();
+}
+        
+        // ====== 场景导航 ======
+        function goToScene(sceneNumber) {
+            if (isTransitioning || sceneNumber < 1 || sceneNumber > totalScenes) return;
+            
+            isTransitioning = true;
+            currentScene = sceneNumber;
+            
+            // 隐藏小精灵
+            hideSpirit();
+            
+            // 更新容器位置
+            const container = document.getElementById('sceneContainer');
+            const translateX = -(sceneNumber - 1) * 100;
+            container.style.transform = `translateX(${translateX}vw)`;
+            
+            // 更新导航点
+            updateNavigation();
+            
+            // 滚动到顶部
+            document.querySelectorAll('.scrollable-content').forEach(content => {
+                content.scrollTop = 0;
+            });
+            
+            // 重置过渡标志
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 800);
+            
+            // 如果跳转到场景1，重新播放开场动画
+            if (sceneNumber === 1) {
+                setTimeout(() => {
+                    resetToScene1();
+                }, 300);
+            }
+            
+            // 如果跳转到场景5，触发印章动画
+            if (sceneNumber === 5) {
+                setTimeout(() => {
+                    const finalSeal = document.getElementById('finalSeal');
+                    // 先重置动画
+                    finalSeal.style.animation = 'none';
+                    finalSeal.offsetHeight; // 触发重排
+                    // 重新应用动画
+                    finalSeal.style.animation = 'small-seal-stamp 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards';
+                }, 500);
+            }
+        }
+        
+        function resetToScene1() {
+            // 重置主题内容
+            const heroContent = document.getElementById('heroContent');
+            heroContent.classList.remove('show-content');
+            heroContent.style.opacity = '0';
+            heroContent.style.transform = 'translateY(30px)';
+            
+            // 重置年份计数器
+            const yearCounter = document.getElementById('yearCounter');
+            yearCounter.classList.remove('hidden');
+            yearCounter.style.opacity = '0';
+            yearCounter.style.display = 'grid';
+            
+            // 重置数字
+            const digits = document.querySelectorAll('.year-digit');
+            digits.forEach(digit => {
+                digit.textContent = Math.floor(Math.random() * 10);
+                digit.style.transform = 'scale(1)';
+            });
+            
+            // 强制重绘
+            yearCounter.offsetHeight;
+            heroContent.offsetHeight;
+            
+            // 延迟播放开场动画
+            setTimeout(playOpeningAnimation, 300);
+        }
+        
+        function nextScene() {
+            if (currentScene < totalScenes) {
+                goToScene(currentScene + 1);
+            }
+        }
+        
+        function prevScene() {
+            if (currentScene > 1) {
+                goToScene(currentScene - 1);
+            }
+        }
+        
+        function updateNavigation() {
+            const dots = document.querySelectorAll('.indicator-dot');
+            dots.forEach((dot, index) => {
+                if (index + 1 === currentScene) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // ====== 图片放大功能 ======
+        function openImageModal(imageSrc, title) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            modalImage.src = imageSrc;
+            modalTitle.textContent = title;
+            modal.style.display = 'flex';
+        }
+        
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+        }
+        
+        // ====== 视频播放功能 ======
+        function playMusicVideo(videoUrl, title) {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+            const videoTitle = document.getElementById('videoTitle');
+            
+            videoPlayer.src = videoUrl;
+            videoTitle.textContent = title;
+            modal.style.display = 'flex';
+        }
+        
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            videoPlayer.src = '';
+            modal.style.display = 'none';
+        }
+        
+        // ====== 华乐小精灵功能 ======
+        function showSpirit(message) {
+            const spirit = document.getElementById('musicSpirit');
+            const messageBox = document.getElementById('spiritMessage');
+            
+            // 隐藏之前的消息
+            if (currentSpiritMessage) {
+                clearTimeout(currentSpiritMessage);
+            }
+            
+            // 显示小精灵
+            spirit.style.display = 'block';
+            
+            // 设置消息内容
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            
+            // 5秒后自动隐藏
+            currentSpiritMessage = setTimeout(() => {
+                hideSpirit();
+            }, 5000);
+        }
+        
+        function hideSpirit() {
+            const spirit = document.getElementById('musicSpirit');
+            const messageBox = document.getElementById('spiritMessage');
+            
+            if (spirit.style.display !== 'none') {
+                spirit.style.display = 'none';
+                messageBox.style.display = 'none';
+            }
+            
+            if (currentSpiritMessage) {
+                clearTimeout(currentSpiritMessage);
+                currentSpiritMessage = null;
+            }
+        }
+        
+        // ====== 印章选择功能 ======
+        function selectSeal(number, icon) {
+            selectedSeal = number;
+            selectedSealIcon = icon;
+            
+            // 更新印章选项样式
+            document.querySelectorAll('.seal-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`.seal-${number}`).classList.add('selected');
+            
+            // 更新预览印章
+            const preview = document.getElementById('sealPreview');
+            preview.innerHTML = `<i class="${icon}"></i>`;
+        }
+        
+        // ====== 数据渲染 ======
+        function renderMemoriesGallery() {
+            console.log("渲染回忆相册");
+            const gallery = document.getElementById('memoriesGallery');
+            if (!gallery) {
+                console.error("找不到回忆相册容器");
+                return;
+            }
+            
+            gallery.innerHTML = '';
+            
+            memoriesData.forEach((memory, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.onclick = () => {
+                    const spiritDialogues = [
+                        "哇！这是2020年的秋天呢～记得那天阳光特别好，我第一次见到这么多华乐器！",
+                        "第一次合奏的感觉真是奇妙！虽然大家都有些紧张，但音乐让我们紧紧联系在一起。",
+                        "2022年的夏天，我们在舞台上闪闪发光！台下的掌声是对我们努力的最好回报。",
+                        "跨校交流让我认识了更多热爱华乐的朋友，音乐真是最好的语言！",
+                        "获奖的感觉真好！这份荣誉属于华乐团的每一个人，我们一起创造了奇迹！",
+                        "作为学长学姐指导新成员，把华乐精神传递下去，这种感觉真温暖～",
+                        "专场音乐会是我最珍贵的记忆！三个月的汗水，换来了一晚的辉煌。",
+                        "毕业音乐会总是让人感动，虽然不舍，但音乐让我们永远相连。",
+                        "十周年庆典！华乐团就像我的第二个家，这里充满了爱与音乐。",
+                        "最后一次合奏…虽然眼眶湿润，但音符永远留在心中。感谢华乐团！"
+                    ];
+                    const message = spiritDialogues[index % spiritDialogues.length];
+                    showSpirit(message);
+                };
+                
+                card.innerHTML = `
+                    <div class="memory-image" style="background: ${memory.color};" 
+                         onclick="event.stopPropagation(); openImageModal('${memory.image}', '${memory.year} - ${memory.title}')">
+                        <img src="${memory.image}" alt="${memory.title}" 
+                             onerror="this.src='https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'">
+                        <i class="${memory.icon}" style="position: absolute; font-size: 3.5rem; color: white;"></i>
+                    </div>
+                    <div class="memory-content">
+                        <div class="memory-year">${memory.year}</div>
+                        <h3 class="memory-title">${memory.title}</h3>
+                        <p class="memory-desc">${memory.desc}</p>
+                    </div>
+                `;
+                
+                gallery.appendChild(card);
+            });
+            
+            console.log("回忆相册渲染完成，共" + memoriesData.length + "个项目");
+        }
+        
+        function renderMusicCollection() {
+            console.log("渲染音乐珍藏");
+            const collection = document.getElementById('musicCollection');
+            if (!collection) {
+                console.error("找不到音乐珍藏容器");
+                return;
+            }
+            
+            collection.innerHTML = '';
+            
+            musicData.forEach((music, index) => {
+                const card = document.createElement('div');
+                card.className = 'music-card';
+                
+                // 为整个卡片添加点击事件，显示小精灵对话
+                card.onclick = (e) => {
+                    // 防止播放按钮点击触发卡片点击事件
+                    if (!e.target.closest('.play-btn')) {
+                        showSpirit(music.dialogue);
+                    }
+                };
+                
+                card.innerHTML = `
+                    <div class="music-icon" style="background: ${music.color};">
+                        <i class="${music.icon}"></i>
+                    </div>
+                    <h3 class="music-title">${music.title}</h3>
+                    <div class="music-meta">
+                        <span>${music.year}</span>
+                        <span>${music.type}</span>
+                    </div>
+                    <p class="music-desc">${music.desc}</p>
+                    <button class="play-btn" onclick="event.stopPropagation(); playMusicVideo('${music.video}', '${music.title}')">
+                        <i class="fas fa-play"></i>
+                        播放视频
+                    </button>
+                `;
+                
+                collection.appendChild(card);
+            });
+            
+            console.log("音乐珍藏渲染完成，共" + musicData.length + "个项目");
+        }
+        
+        // ====== 下载功能 ======
+        function downloadTicketWithSeal() {
+            const ticket = document.getElementById('memoryTicket');
+            
+            // 显示加载提示
+            const originalText = event.target.innerHTML;
+            event.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+            event.target.disabled = true;
+            
+            html2canvas(ticket, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null,
+                allowTaint: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '华乐团纪念车票.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 恢复按钮状态
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+                
+                // 显示下载成功提示
+                showSpirit('纪念车票下载成功！已经保存在您的电脑中了～');
+            }).catch(error => {
+                console.error('生成图片失败:', error);
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+                alert('下载失败，请重试');
+            });
+        }
+        
+        function downloadFinalTicket() {
+            // 隐藏"到站"印章
+            const sealContainer = document.querySelector('.final-seal-container');
+            const originalDisplay = sealContainer.style.display;
+            sealContainer.style.display = 'none';
+            
+            const ticket = document.getElementById('finalTicketForDownload');
+            
+            // 显示加载提示
+            const originalText = event.target.innerHTML;
+            event.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+            event.target.disabled = true;
+            
+            html2canvas(ticket, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null,
+                allowTaint: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '华乐团时光纪念票.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 恢复印章显示
+                sealContainer.style.display = originalDisplay;
+                
+                // 恢复按钮状态
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+                
+                // 显示下载成功提示
+                showSpirit('时光纪念票下载成功！这张票上记录了我们所有的美好回忆呢～');
+            }).catch(error => {
+                console.error('生成图片失败:', error);
+                sealContainer.style.display = originalDisplay;
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+                alert('下载失败，请重试');
+            });
+        }
+        
+        // ====== 初始化 ======
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("页面加载完成，开始初始化");
+            
+            // 初始化导航按钮
+            document.getElementById('prevBtn').addEventListener('click', prevScene);
+            document.getElementById('nextBtn').addEventListener('click', nextScene);
+            
+            // 初始化键盘导航
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') prevScene();
+                if (e.key === 'ArrowRight') nextScene();
+            });
+            
+            // 初始化背景音乐
+            initBackgroundMusic();
+            
+            // 渲染数据
+            renderMemoriesGallery();
+            renderMusicCollection();
+            
+            // 开始开场动画
+            setTimeout(playOpeningAnimation, 500);
+            
+            console.log("初始化完成");
+        });
+    </script>
+</body>
+</html>
